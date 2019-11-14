@@ -4,10 +4,20 @@
     <meta charset="UTF-8">
     <title>asteroids.js</title>
     <link rel="stylesheet" href="index.css">
+  <!-- <style>
+     html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        border: 0;
+        overflow: hidden; /*  Disable scrollbars */
+        display: block; /* No floating content on sides */
+      }
+      </style> -->
   </head>
   <body>
-    <canvas id="gameCanvas" width="500" height="500"></canvas>
-   
+    <canvas id="gameCanvas" style="position:absolute; left:0px; top:0px;">
   </body>
   <script>
     require('./gamelogic.js')
