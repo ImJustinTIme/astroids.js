@@ -87,9 +87,10 @@
         }
         ship.explodeTime = Math.ceil(SHIP_EXPLODE_DUR * FPS);
       }
-      //explode ship nicely
-      function shipExplosion() {
 
+      //explode ship nicely
+      function shipExplosion(){
+          
       }
       function keyDown(/** @type {KeyboardEvent} */ ev) {
         switch (ev.keyCode) {
