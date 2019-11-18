@@ -482,23 +482,23 @@
 
         if (!game.gameover) {
           //draw the score
-          ctx.font = "30px Roboto";
+          ctx.font = "25px 'Press Start 2P'";
           ctx.fillStyle = "white";
           ctx.textAlign = "left";
-          ctx.fillText(game.score, 10, 30);
+          ctx.fillText(game.score, 12, 35);
 
           //draw the number of lives
-          ctx.font = "15px Roboto";
+          ctx.font = "12px 'Press Start 2P";
           ctx.fillStyle = "white";
           ctx.textAlign = "left";
-          ctx.fillText("Lives: " + game.lives, 10, 53);
+          ctx.fillText("Lives:" + game.lives, 12, 55);
         } else {
-          ctx.font = "30px Roboto";
+          ctx.font = "30px 'Press Start 2P";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText("Game Over", canv.width / 2, canv.height / 2);
 
-          ctx.font = "20px Roboto";
+          ctx.font = "20px 'Press Start 2P";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
@@ -507,7 +507,7 @@
             canv.height / 2 + 30
           );
 
-          ctx.font = "15px Roboto";
+          ctx.font = "15px 'Press Start 2P";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
@@ -518,7 +518,7 @@
         }
 
         if (game.newLevel == true && blinkOn && !game.gameover) {
-          ctx.font = "30px Roboto";
+          ctx.font = "30px asai-Analogue";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
