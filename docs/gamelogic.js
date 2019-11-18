@@ -332,7 +332,7 @@
 
         //set background
         ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canv.width, canv.width);
+        ctx.fillRect(0, 0, canv.width, canv.height);
 
         //thrust the ship
         if (ship.thrusting) {
