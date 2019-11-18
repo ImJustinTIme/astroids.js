@@ -482,23 +482,23 @@
 
         if (!game.gameover) {
           //draw the score
-          ctx.font = "25px 'Press Start 2P'";
+          ctx.font = "25px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "left";
           ctx.fillText(game.score, 12, 35);
 
           //draw the number of lives
-          ctx.font = "12px 'Press Start 2P";
+          ctx.font = "12px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "left";
           ctx.fillText("Lives:" + game.lives, 12, 55);
         } else {
-          ctx.font = "30px 'Press Start 2P";
+          ctx.font = "30px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText("Game Over", canv.width / 2, canv.height / 2);
 
-          ctx.font = "20px 'Press Start 2P";
+          ctx.font = "20px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
@@ -507,7 +507,7 @@
             canv.height / 2 + 30
           );
 
-          ctx.font = "15px 'Press Start 2P";
+          ctx.font = "15px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
@@ -518,13 +518,13 @@
         }
 
         if (game.newLevel == true && blinkOn && !game.gameover) {
-          ctx.font = "30px asai-Analogue";
+          ctx.font = "30px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
-            "<Level" + game.level + "start>",
+            "Level" + game.level + "start",
             canv.width / 2,
-            canv.height / 2
+            (canv.height / 2) +20
           );
         }
         if (ship.blinkNum == 0) {

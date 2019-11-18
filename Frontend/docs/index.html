@@ -15,7 +15,14 @@
     />
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet"/> 
     <style>
-     
+     @font-face {
+       font-family: Hyperspace;
+       src: url('Hyperspace.otf')format("truetype");
+     }
+     @font-face {
+       font-family: Hyperspace-bold;
+       src: url('Hyperspace Bold.otf')format("truetype");
+     }
       html,
       body {
         width: 100%;
@@ -24,9 +31,11 @@
         border: 0;
         overflow: hidden; /*  Disable scrollbars */
         display: block; /* No floating content on sides */
-        font-family:'Press Start 2P' ;
+        font-family: Hyperspace;
       }
-     
+     p {
+       font-family: Hyperspace-bold;
+     }
     </style>
   </head>
 
@@ -47,7 +56,7 @@
       class="w3-container w3-teal w3-center w3-margin-top "
       style="position:fixed; bottom:0; width:100%;"
     >
-      <p style="font-size: 10px;">See more at <a href="https://imjustintime.github.io">here</a></p>
+      <p style="font-size: 12px;">See more at <a href="https://imjustintime.github.io">here</a></p>
     </footer>
   </body>
 </html>
