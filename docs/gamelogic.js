@@ -16,7 +16,7 @@
       const ROID_SPD = 70; //max starting speed
       var ROID_SIZE = 120; //starting size of Roid
       const ROIDS_VERT = 10; //average number of vert on a asteroid
-      const SHOW_BOUNDING = false; //show or hide the collision bounding
+      const SHOW_DEV = false; //show or hide the dev stuf
       const SHOW_CENTER_DOT = false; // show or hide the ship's center dot
       const SCRAP_DUR = 0.05; //Duration the scrap will be put on screen
       const L_AST_POINTS = 20; //points awarded when you destroy a large asteroid
@@ -115,12 +115,11 @@
             }
             break;
           case 80:
-            if (!game.paused) {
-              game.paused = true;
-            } else {
-              game.paused = false;
-            }
+              game.paused = (!game.paused)?true:false;
             break;
+         case 57:
+             game.devMode = (!game.devMode)?true:false;
+             break;
         }
       }
 
@@ -166,7 +165,8 @@
           level: 1,
           newLevel: false,
           paused: false,
-          newLife: ADD_LIVE
+          newLife: ADD_LIVE,
+          devMode: SHOW_DEV,
         };
       }
 
@@ -436,7 +436,7 @@
             ctx.fill();
           }
         }
-        if (SHOW_BOUNDING) {
+        if (game.devMode) {
           ctx.strokeStyle = "lime";
           ctx.beginPath();
           ctx.arc(ship.x, ship.y, ship.r, 0, Math.PI * 2, false);
@@ -472,7 +472,7 @@
           ctx.closePath();
           ctx.stroke();
 
-          if (SHOW_BOUNDING) {
+          if (game.devMode) {
             ctx.strokeStyle = "lime";
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2, false);
@@ -522,16 +522,16 @@
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
-            "Level" + game.level + "start",
+            "Level " + game.level + " start",
             canv.width / 2,
-            (canv.height / 2) +20
+            (canv.height / 2)+50, 
           );
         }
         if (ship.blinkNum == 0) {
           game.newLevel = false;
         }
         //center dot for debugging
-        if (SHOW_CENTER_DOT) {
+        if (game.devMode) {
           ctx.fillStyle = "red";
           ctx.fillRect(ship.x - 1, ship.y - 1, 2, 2);
         }
