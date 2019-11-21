@@ -413,7 +413,9 @@
               //reduce blink num
               if (ship.blinkTime == 0) {
                 ship.blinkTime = Math.ceil(SHIP_BLINK_DUR * FPS);
-                ship.blinkNum--;
+                if(!game.paused){
+                  ship.blinkNum--;
+                }
               }
             }
           } else {
@@ -617,7 +619,9 @@
             ship.x += ship.thrust.x;
             ship.y += ship.thrust.y;
           } else {
+          
             ship.explodeTime--;
+  
             if (ship.explodeTime == 0) {
               ship = newship();
             }
