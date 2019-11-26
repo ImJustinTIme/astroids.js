@@ -27,6 +27,9 @@
       const SCORE_Y = 30; //offset of the score in pixels
       const LIVES_Y = 53; //offset of the livel in pixels
       const ADD_LIVE = 10000; //starting score to add a new live for the player
+      const MENU_BLINK_DUR = 0.6; //duration of the blink in the main menu in seconds
+    
+    
       /** @type {HTMLCanvasElement} */
       canv = document.getElementById("gameCanvas");
       ctx = canv.getContext("2d");
@@ -46,7 +49,7 @@
       }
       function resizeCanvas() {
         canv.width = window.innerWidth;
-        canv.height = window.innerHeight;
+        canv.height = window.innerHeight*29/30;
         getResolution();
         //  bigScreen.scale = getScale();
         //   SHIP_SIZE *= bigScreen.scale;
@@ -68,6 +71,34 @@
       var ship;
       var roids = [];
       var game = newGame();
+     game.mainMenu.on = true;
+  //set up a new game
+  function newGame() {
+    ship = newship();
+
+    roids.splice(0, roids.length);
+    createAsteroidBelt(ROID_NUM);
+    return {
+      score: 0,
+      lives: STARTING_LIVES,
+      gameover: false,
+      level: 1,
+      newLevel: false,
+      paused:{
+        on:false,
+        choice:1,
+        exit:false,
+      },
+      mainMenu:{
+        on:false,
+        choice:1,
+        blinkTime: Math.ceil(MENU_BLINK_DUR * FPS),
+        blinkOn:true
+      },
+      newLife: ADD_LIVE,
+      devMode: SHOW_DEV,
+    };
+  }
 
       //set up scrap array
       var scrap = [];
@@ -95,27 +126,28 @@
       function keyDown(/** @type {KeyboardEvent} */ ev) {
         switch (ev.keyCode) {
           case 38: //up arrow (thrust the ship forward)
-            if (!game.paused) {
+            if (!game.paused.on) {
               ship.thrusting = true;
             }
             break;
           case 39: //right arrow (rotate the ship right)
-            if (!game.paused) {
+            if (!game.paused.on) {
               ship.rot = ((-TURN_SPEED / 180) * Math.PI) / FPS;
             }
             break;
           case 32: //space bar (shoot lasers PEW PEW)
-            if (!game.gameover && !game.paused) {
+            if (!game.gameover && !game.paused.on) {
               shootLaser();
             }
             break;
           case 37: //left arrow (rotate ship left)
-            if (!game.paused) {
+            if (!game.paused.on) {
               ship.rot = ((TURN_SPEED / 180) * Math.PI) / FPS;
             }
             break;
           case 80:
-              game.paused = (!game.paused)?true:false;
+              game.paused.on = (!game.paused.on)?true:false;
+              game.paused.exit = false;
             break;
          case 57:
              game.devMode = (!game.devMode)?true:false;
@@ -126,17 +158,34 @@
       function keyUp(/** @type {KeyboardEvent} */ ev) {
         switch (ev.keyCode) {
           case 38: //up arrow (stop thrust the ship forward)
-            if (!game.paused) {
+            if (!game.paused.on && !game.mainMenu.on) {
               ship.thrusting = false;
             }
+            else if(game.mainMenu.on){
+              game.mainMenu.choice--;
+              if (game.mainMenu.choice <= 0){
+                game.mainMenu.choice = 3;
+              }
+            }
             break;
+          case 40:
+            if(game.mainMenu.on){
+              game.mainMenu.choice++;
+              if(game.mainMenu.choice > 3){
+                game.mainMenu.choice = 1;
+              }
+            }
+            break;
+
           case 39: //right arrow (stop rotate the ship right)
-            if (!game.paused) {
+            if (!game.paused.on) {
               ship.rot = 0;
+            }else if(game.paused.exit){
+              game.paused.choice = (game.paused.choice == 1)?2:1;
             }
             break;
           case 32: //space bar (allow shooting)
-            if (!game.gameover && !game.paused) {
+            if (!game.gameover && !game.paused.on) {
               ship.canShoot = true;
             }
             break;
@@ -144,32 +193,46 @@
             if (game.gameover) {
               game = newGame();
             }
+            if(game.mainMenu.on){ //enter a choice if the main menu is on
+              switch(game.mainMenu.choice){
+                case 1:
+                  game.mainMenu.on = false;
+                  ship = newship();
+                  break;
+                case 2:
+                  //TODO make a control screen
+                  break;
+                case 3:
+                  //TODO make a highscore screen
+                  break;
+              }
+            }
+            if(game.paused.on && game.paused.exit){
+               switch(game.paused.choice){
+                 case 1:
+                   game.paused.exit = false
+                   break;
+                 case 2:
+                   game = newGame()
+                   game.mainMenu.on = true
+
+               }
+            }
           case 37: //left arrow ( stop rotate ship left)
             ship.rot = 0;
             break;
+          case 27:
+            if(game.paused.on){
+                game.paused.exit = (!game.paused.exit)?true:false;
+            }
+            break;
         }
+
       }
       //set up the game loop
       setInterval(update, 1000 / FPS);
 
-      //set up a new game
-      function newGame() {
-        ship = newship();
-
-        roids.splice(0, roids.length);
-        createAsteroidBelt(ROID_NUM);
-        return {
-          score: 0,
-          lives: STARTING_LIVES,
-          gameover: false,
-          level: 1,
-          newLevel: false,
-          paused: false,
-          newLife: ADD_LIVE,
-          devMode: SHOW_DEV,
-        };
-      }
-
+    
       //change the level of the game
       function changelevel() {
         game.level += 1;
@@ -325,21 +388,76 @@
       function getRandomArbitrary(min, max) {
         return Math.random() * (max - min) + min;
       }
-
+      /**
+       *  
+       * !begin the game loop
+       */
       function update() {
         var blinkOn = ship.blinkNum % 2 == 0;
         var exploding = ship.explodeTime > 0;
-
+        
         //set background
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canv.width, canv.height);
+        game.mainMenu.blinkTime--;
+        //reduce blink num
+        if (game.mainMenu.blinkTime == 0) {
+          game.mainMenu.blinkTime = Math.ceil(MENU_BLINK_DUR * FPS);
+          game.mainMenu.blinkOn = (game.mainMenu.blinkOn)?false:true;
+        }
+        if(game.mainMenu.on){ //!load main menu
+          
+         
+          //draw main title
+          ctx.font = "80px Hyperspace";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            "Asteroids.js",
+            canv.width / 2,
+            (canv.height *3/8), 
+          );
+          ctx.font = "30px Hyperspace";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          if(!game.mainMenu.blinkOn && game.mainMenu.choice == 1 ){
+          }else {ctx.fillText( 
+            "Start New Game",
+            canv.width / 2,
+            (canv.height *3/5) 
+          )
+          }
+          if(!game.mainMenu.blinkOn && game.mainMenu.choice == 2 ){
+          }else {
+          ctx.fillText( 
+            "Controls",
+            canv.width / 2,
+            (canv.height *3/5) + 40
+          )
+          }
+          if(!game.mainMenu.blinkOn && game.mainMenu.choice == 3 ){
+          }else {
+          ctx.fillText( 
+            "high scores",
+            canv.width / 2,
+            (canv.height *3/5) + 80
+          )
+          }
 
+      
+
+
+      
+        } 
+        //! start game
+
+        
         //thrust the ship
         if (ship.thrusting) {
           ship.thrust.x += (SHIP_THRUST * Math.cos(ship.a)) / FPS;
           ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.a)) / FPS;
 
-          if (!game.gameover) {
+          if (!game.gameover && !game.mainMenu.on) {
             // draw the thruster
             if (!exploding && blinkOn) {
               ctx.strokeStyle = "white";
@@ -377,7 +495,7 @@
         }
 
         //drow triangular ship
-        if (!game.gameover) {
+        if (!game.gameover &&!game.mainMenu.on) {
           if (!exploding) {
             if (blinkOn) {
               ctx.strokeStyle = "white";
@@ -413,7 +531,7 @@
               //reduce blink num
               if (ship.blinkTime == 0) {
                 ship.blinkTime = Math.ceil(SHIP_BLINK_DUR * FPS);
-                if(!game.paused){
+                if(!game.paused.on){
                   ship.blinkNum--;
                 }
               }
@@ -482,7 +600,7 @@
           }
         }
 
-        if (!game.gameover) {
+        if (!game.gameover &&!game.mainMenu.on) {
           //draw the score
           ctx.font = "25px Hyperspace-bold";
           ctx.fillStyle = "white";
@@ -494,7 +612,7 @@
           ctx.fillStyle = "white";
           ctx.textAlign = "left";
           ctx.fillText("Lives:" + game.lives, 12, 55);
-        } else {
+        } else if(!game.mainMenu.on) {
           ctx.font = "30px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
@@ -513,20 +631,81 @@
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
-            "<Press enter to start new game>",
+            "<Press enter to start a new game>",
             canv.width / 2,
             canv.height / 2 + 60
           );
         }
+        if(game.paused.on && game.mainMenu.blinkOn && !game.paused.exit){
+          ctx.font = "30px Hyperspace-bold";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            "Game Paused",
+            canv.width / 2,
+            (canv.height / 2)+60, 
+          );
+        }
+        if(game.paused.on && !game.paused.exit){
+          ctx.font = "15px Hyperspace-bold";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            "<Press esc to return to the main menu>",
+            canv.width / 2,
+            canv.height / 2 + 90
+          );
+          ctx.font = "15px Hyperspace-bold";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            "<Press P to Resume>",
+            canv.width / 2,
+            canv.height / 2 + 115
+          );
+        }
+        if(game.paused.on && game.paused.exit){
+          ctx.font = "30px Hyperspace-bold";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            "Do you really want to return to the main menu?",
+            canv.width / 2,
+            (canv.height / 2)+60, 
+          );
+          if(game.paused.choice == 1 && !game.mainMenu.blinkOn){
 
-        if (game.newLevel == true && blinkOn && !game.gameover) {
+          }else{
+            ctx.font = "30px Hyperspace-bold";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText(
+              "<no>",
+              (canv.width / 2)-110,
+              canv.height / 2 + 110
+            );
+          }
+            if(game.paused.choice == 2 && !game.mainMenu.blinkOn){
+
+            }else{
+              ctx.font = "30px Hyperspace-bold";
+              ctx.fillStyle = "white";
+              ctx.textAlign = "center";
+              ctx.fillText(
+                "<yes>",
+                (canv.width / 2)+110,
+                canv.height / 2 + 110
+              );
+          }
+        }
+        if (game.newLevel && blinkOn && !game.gameover) {
           ctx.font = "30px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
             "Level " + game.level + " start",
             canv.width / 2,
-            (canv.height / 2)+50, 
+            (canv.height / 2)+60, 
           );
         }
         if (ship.blinkNum == 0) {
@@ -570,7 +749,7 @@
             }
           }
         }
-        if (!game.paused) {
+        if (!game.paused.on) {
           //detect laser hits on asteroids
           var ax, ay, ar, x, ly;
           for (var i = roids.length - 1; i >= 0; i--) {
@@ -678,7 +857,7 @@
             } */
           }
         }
-        if (!game.paused) {
+        if (!game.paused.on) {
           //move scrap if applicable
           for (var i = 0; i < scrap.length; i++) {
             //calculate distance traveled of scrap
@@ -708,4 +887,5 @@
           }
         }
       }
+      
     
