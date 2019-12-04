@@ -69,6 +69,8 @@
 
       //--Setup--//
       var ship;
+      var temp = 0; //temp veriable until I implement highscores
+      var highscore = false; //temp variable until actual high scores is implemented
       var roids = [];
       var game = newGame();
      game.mainMenu.on = true;
@@ -89,11 +91,24 @@
         choice:1,
         exit:false,
       },
+      controls:{
+        thrust: ["up",38],
+        leftRot: ["left",37],
+        rightRot: ["right",39],
+        shoot: ["space", 32],
+        pause: ["P", 80]
+      },
       mainMenu:{
         on:false,
         choice:1,
         blinkTime: Math.ceil(MENU_BLINK_DUR * FPS),
-        blinkOn:true
+        blinkOn:true,
+        subMenu: false
+      },
+      controlMenu:{
+        on: false,
+       
+
       },
       newLife: ADD_LIVE,
       devMode: SHOW_DEV,
@@ -125,29 +140,31 @@
       }
       function keyDown(/** @type {KeyboardEvent} */ ev) {
         switch (ev.keyCode) {
-          case 38: //up arrow (thrust the ship forward)
+          case game.controls.thrust[1]: //up arrow (thrust the ship forward)
             if (!game.paused.on) {
               ship.thrusting = true;
             }
             break;
-          case 39: //right arrow (rotate the ship right)
+          case game.controls.rightRot[1]: //right arrow (rotate the ship right)
             if (!game.paused.on) {
               ship.rot = ((-TURN_SPEED / 180) * Math.PI) / FPS;
             }
             break;
-          case 32: //space bar (shoot lasers PEW PEW)
+          case game.controls.shoot[1]: //space bar (shoot lasers PEW PEW)
             if (!game.gameover && !game.paused.on) {
               shootLaser();
             }
             break;
-          case 37: //left arrow (rotate ship left)
+          case game.controls.leftRot[1]: //left arrow (rotate ship left)
             if (!game.paused.on) {
               ship.rot = ((TURN_SPEED / 180) * Math.PI) / FPS;
             }
             break;
-          case 80:
+          case game.controls.pause[1]: //pause the game
+          if(!game.gameover && !game.mainMenu.on){
               game.paused.on = (!game.paused.on)?true:false;
               game.paused.exit = false;
+          }
             break;
          case 57:
              game.devMode = (!game.devMode)?true:false;
@@ -189,7 +206,7 @@
               ship.canShoot = true;
             }
             break;
-          case 13: //start a new game if at game over
+          case 13: //enter button start a new game if at game over
             if (game.gameover) {
               game = newGame();
             }
@@ -200,30 +217,44 @@
                   ship = newship();
                   break;
                 case 2:
-                  //TODO make a control screen
+                  game.mainMenu.subMenu = true;
+                  game.controlMenu.on = true;
                   break;
                 case 3:
                   //TODO make a highscore screen
+                  temp++;
+                  if(temp > 2){
+                      highscore =true
+                  }
                   break;
               }
             }
             if(game.paused.on && game.paused.exit){
                switch(game.paused.choice){
                  case 1:
-                   game.paused.exit = false
+                   game.paused.exit = false;
                    break;
                  case 2:
-                   game = newGame()
-                   game.mainMenu.on = true
+                   game = newGame();
+                   game.mainMenu.on = true;
 
                }
             }
           case 37: //left arrow ( stop rotate ship left)
             ship.rot = 0;
             break;
-          case 27:
+          case 27: 
             if(game.paused.on){
                 game.paused.exit = (!game.paused.exit)?true:false;
+            }
+            else if(game.mainMenu.subMenu && game.controlMenu.on){
+              game.mainMenu.subMenu = false;
+              game.controlMenu.on = false;
+              
+            }
+            else if(game.gameover){
+              game.gameover = false;
+              game.mainMenu.on = true;
             }
             break;
         }
@@ -281,7 +312,7 @@
         }
       }
 
-      //if score hits 10000i award the player with a new live---also start the second part ;)
+      //if score hits 10000 award the player with a new live---also start the second part ;)
       function checkAddLife() {
         if (game.score >= game.newLife) {
           game.lives++;
@@ -385,6 +416,17 @@
         }
       }
 
+      function displaykeyboardkey(char, size, x, y){
+        ctx.font = size+"px Hyperspace";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          char,
+          x,
+          y
+        );
+
+      }
       function getRandomArbitrary(min, max) {
         return Math.random() * (max - min) + min;
       }
@@ -407,7 +449,7 @@
         }
         if(game.mainMenu.on){ //!load main menu
           
-         
+         if(!game.mainMenu.subMenu){
           //draw main title
           ctx.font = "80px Hyperspace";
           ctx.fillStyle = "white";
@@ -425,7 +467,7 @@
             "Start New Game",
             canv.width / 2,
             (canv.height *3/5) 
-          )
+          );
           }
           if(!game.mainMenu.blinkOn && game.mainMenu.choice == 2 ){
           }else {
@@ -433,7 +475,7 @@
             "Controls",
             canv.width / 2,
             (canv.height *3/5) + 40
-          )
+          );
           }
           if(!game.mainMenu.blinkOn && game.mainMenu.choice == 3 ){
           }else {
@@ -441,23 +483,80 @@
             "high scores",
             canv.width / 2,
             (canv.height *3/5) + 80
-          )
+          );
           }
+          if(highscore){
+            ctx.fillText( 
+              "I haven't done highscores yet chill out",
+              canv.width / 2,
+              (canv.height *4/5)
+            );
+            temp++;
+            if(temp > 1700){
+              temp = 0;
+              highscore = false;
+            }
+          }
+          
+        } else if(game.controlMenu.on){ //!draw the controls menu 
+           //draw main title
+           ctx.font = "80px Hyperspace";
+           ctx.fillStyle = "white";
+           ctx.textAlign = "center";
+           ctx.fillText(
+             "Controls",
+             canv.width / 2,
+             (canv.height *1/8), 
+           );
+            //displaykeyboardkey("up",30, canv.width *1/3, canv.height * 3/8); 
+            ctx.font = "30px Hyperspace";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "left";
+            ctx.fillText(
+              "Activate Thrust: UP arrow",
+              canv.width *1/4,
+              (canv.height *6/16), 
+            );
+            ctx.fillText(
+              "Rotate ship left: left arrow",
+              canv.width *1/4,
+              canv.height * 7/16,
+            );
+            ctx.fillText(
+              "Rotate ship Right: Right arrow",
+              canv.width * 1/4,
+              canv.height * 8/16,
+            );
+            ctx.fillText(
+              "shoot ship lasers: space",
+              canv.width * 1/4,
+              canv.height * 9/16,
+            );
+            ctx.fillText(
+              "Pause the Game: P",
+              canv.width * 1/4,
+              canv.height * 10/16,
+            );
+            ctx.font = "20px Hyperspace";
+            ctx.textAlign = "center";
 
-      
+             ctx.fillText(
+              "Press esc to go back to the main menu",
+              canv.width * 1/2,
+              canv.height * 13/16,
+            );
 
-
-      
+        }
         } 
-        //! start game
 
-        
+        //! start game
         //thrust the ship
+        if (!game.gameover && !game.mainMenu.on) {
         if (ship.thrusting) {
           ship.thrust.x += (SHIP_THRUST * Math.cos(ship.a)) / FPS;
           ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.a)) / FPS;
 
-          if (!game.gameover && !game.mainMenu.on) {
+        
             // draw the thruster
             if (!exploding && blinkOn) {
               ctx.strokeStyle = "white";
@@ -488,12 +587,12 @@
               ctx.fill();
               ctx.stroke();
             }
-          }
+          
         } else {
           ship.thrust.x -= (FRICTION * ship.thrust.x) / FPS;
-          ship.thrust.y == (FRICTION * ship.thrust.y) / FPS;
+          ship.thrust.y -= (FRICTION * ship.thrust.y) / FPS;
         }
-
+      }
         //drow triangular ship
         if (!game.gameover &&!game.mainMenu.on) {
           if (!exploding) {
@@ -564,6 +663,7 @@
         }
 
         //draw the asteroids
+        if(!game.mainMenu.subMenu){
         var x, y, r, a, vert, offset;
         for (var i = 0; i < roids.length; i++) {
           ctx.strokeStyle = "slategrey";
@@ -599,7 +699,7 @@
             ctx.stroke();
           }
         }
-
+      }
         if (!game.gameover &&!game.mainMenu.on) {
           //draw the score
           ctx.font = "25px Hyperspace-bold";
@@ -631,9 +731,14 @@
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
-            "<Press enter to start a new game>",
+            "Press enter to start a new game",
             canv.width / 2,
             canv.height / 2 + 60
+          );
+          ctx.fillText(
+            "Press esc to return to the main menu",
+            canv.width / 2,
+            canv.height / 2 + 85
           );
         }
         if(game.paused.on && game.mainMenu.blinkOn && !game.paused.exit){
@@ -651,7 +756,7 @@
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
-            "<Press esc to return to the main menu>",
+            "Press esc to return to the main menu",
             canv.width / 2,
             canv.height / 2 + 90
           );
@@ -659,13 +764,13 @@
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
-            "<Press P to Resume>",
+            "Press P to Resume",
             canv.width / 2,
             canv.height / 2 + 115
           );
         }
         if(game.paused.on && game.paused.exit){
-          ctx.font = "30px Hyperspace-bold";
+          ctx.font = "20px Hyperspace-bold";
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.fillText(
@@ -676,7 +781,7 @@
           if(game.paused.choice == 1 && !game.mainMenu.blinkOn){
 
           }else{
-            ctx.font = "30px Hyperspace-bold";
+            ctx.font = "20px Hyperspace-bold";
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.fillText(
@@ -688,7 +793,7 @@
             if(game.paused.choice == 2 && !game.mainMenu.blinkOn){
 
             }else{
-              ctx.font = "30px Hyperspace-bold";
+              ctx.font = "20px Hyperspace-bold";
               ctx.fillStyle = "white";
               ctx.textAlign = "center";
               ctx.fillText(
