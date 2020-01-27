@@ -88,7 +88,7 @@ function newGame() {
     gameover: {
       on: false,
       name: 'AAA',
-      pos: 1
+      pos: 0
     },
     level: 1,
     newLevel: false,
@@ -157,6 +157,31 @@ function handleHighscore(name) {
     }
   });
 }
+
+function changeChar(increase, character) {
+  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-^*';
+
+  for (var i = 0; i < alphabet.length; i++) {
+    if(character == alphabet.charAt(i)){
+      if ( increase){
+        if(i != alphabet.length){
+          return alphabet.charAt(i+1);
+        }
+        else{
+          return alphabet.charAt(0)
+        }
+      }  else {
+        if(i != 0){
+          return alphabet.charAt(i-1);
+        }
+        else{
+          return alphabet.charAt(alphabet.length)
+        }
+
+      }
+    }
+  }
+}
 //explode ship nicely
 function shipExplosion() {}
 function keyDown(/** @type {KeyboardEvent} */ ev) {
@@ -165,10 +190,24 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
       if (!game.paused.on) {
         ship.thrusting = true;
       }
+      if(game.gameover.on){
+        var name = game.gameover.name.split('');
+        var c = changeChar(true, game.gameover.name.charAt(game.gameover.pos))
+        name[game.gameover.pos] = c
+        game.gameover.name = name.join('');
+
+      }
       break;
     case game.controls.rightRot[1]: //right arrow (rotate the ship right)
       if (!game.paused.on) {
         ship.rot = ((-TURN_SPEED / 180) * Math.PI) / FPS;
+      }
+      if (game.gameover.on){
+        if(game.gameover.pos >= 2){
+          game.gameover.pos = 0;
+        } else {
+          game.gameover.pos++;
+        }
       }
       break;
     case game.controls.shoot[1]: //space bar (shoot lasers PEW PEW)
@@ -180,6 +219,13 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
       if (!game.paused.on) {
         ship.rot = ((TURN_SPEED / 180) * Math.PI) / FPS;
       }
+      if (game.gameover.on){
+        if(game.gameover.pos <= 0){
+          game.gameover.pos = 2;
+        } else {
+          game.gameover.pos--;
+        }
+      }
       break;
     case game.controls.pause[1]: //pause the game
       if (!game.gameover.on && !game.mainMenu.on) {
@@ -187,9 +233,16 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
         game.paused.exit = false;
       }
       break;
-    case 57:
+    case 57: //number 9
       game.devMode = !game.devMode ? true : false;
       break;
+    case 40: 
+    if(game.gameover.on){
+      var name = game.gameover.name.split('');
+        var c = changeChar(false, game.gameover.name.charAt(game.gameover.pos))
+        name[game.gameover.pos] = c
+        game.gameover.name = name.join('');
+    }
   }
 }
 
