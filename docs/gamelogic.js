@@ -71,7 +71,7 @@ var temp = 0; //temp veriable until I implement highscores
 var highscore = false; //temp variable until actual high scores is implemented
 var roids = [];
 if (localStorage.getItem("scores") == null) {
-  scores = { h1: { name: "AAA", score: 10000 } };
+  scores = { h1: {name: "AAA", score: 10000 } };
   localStorage.setItem("scores", JSON.stringify(scores));
 }
 var game = newGame();
@@ -82,12 +82,17 @@ function newGame() {
 
   roids.splice(0, roids.length);
   createAsteroidBelt(ROID_NUM);
+  var score = localStorage.getItem("scores");
+  var parsed = JSON.parse(score);
+  var hscore = parsed.h1.score;
+
   return {
     score: 0,
+    highscore: hscore,
     lives: STARTING_LIVES,
     gameover: {
       on: false,
-      name: 'AAA',
+      name: "AAA",
       pos: 0
     },
     level: 1,
@@ -134,7 +139,6 @@ function explodeShip() {
   if (game.lives <= 0) {
     //starts the game over sequence
     game.gameover.on = true;
-    
   }
   ship.explodeTime = Math.ceil(SHIP_EXPLODE_DUR * FPS);
 }
@@ -144,66 +148,61 @@ function handleHighscore(name) {
   var ret = localStorage.getItem("scores");
   var scores = JSON.parse(ret);
   var newhighscore = false;
-  var tempscore ,tempName, tempscore = null;
-  scores.array.forEach(element => {
-    if (finalScore > element.score || element.score == null && !newhighscore) {
-      tempscore = element.score;
-      tempName = element.name;
-
-      element.score = finalScore;
-      element.name = name;
-      
-
-    }
-  });
+  var tempscore,
+    tempName = null;
+    for( var i = 1; i <= Object.keys(scores).length; i++ ){
+        if (scores['h'+i].score < finalScore|| (scores['h'+i] == null && tempscore != null)) {
+            if(score['h'+i] != null){
+              tempscore = scores['h'+i].score
+              tempName 
+            }
+        }
+  }
 }
 
 function changeChar(increase, character) {
-  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-^*';
+  var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-^*";
 
   for (var i = 0; i < alphabet.length; i++) {
-    if(character == alphabet.charAt(i)){
-      if ( increase){
-        if(i != alphabet.length){
-          return alphabet.charAt(i+1);
+    if (character == alphabet.charAt(i)) {
+      if (increase) {
+        if (i < alphabet.length - 1) {
+          return alphabet.charAt(i + 1);
+        } else {
+          return alphabet.charAt(0);
         }
-        else{
-          return alphabet.charAt(0)
+      } else {
+        if (i > 0) {
+          return alphabet.charAt(i - 1);
+        } else {
+          return alphabet.charAt(alphabet.length - 1);
         }
-      }  else {
-        if(i != 0){
-          return alphabet.charAt(i-1);
-        }
-        else{
-          return alphabet.charAt(alphabet.length)
-        }
-
       }
     }
   }
 }
 //explode ship nicely
 function shipExplosion() {}
+
 function keyDown(/** @type {KeyboardEvent} */ ev) {
   switch (ev.keyCode) {
     case game.controls.thrust[1]: //up arrow (thrust the ship forward)
       if (!game.paused.on) {
         ship.thrusting = true;
       }
-      if(game.gameover.on){
-        var name = game.gameover.name.split('');
-        var c = changeChar(true, game.gameover.name.charAt(game.gameover.pos))
-        name[game.gameover.pos] = c
-        game.gameover.name = name.join('');
-
+      if (game.gameover.on) {
+        var name = game.gameover.name.split("");
+        var c = changeChar(true, game.gameover.name.charAt(game.gameover.pos));
+        name[game.gameover.pos] = c;
+        game.gameover.name = name.join("");
       }
       break;
     case game.controls.rightRot[1]: //right arrow (rotate the ship right)
       if (!game.paused.on) {
         ship.rot = ((-TURN_SPEED / 180) * Math.PI) / FPS;
       }
-      if (game.gameover.on){
-        if(game.gameover.pos >= 2){
+      if (game.gameover.on) {
+        if (game.gameover.pos >= 2) {
           game.gameover.pos = 0;
         } else {
           game.gameover.pos++;
@@ -219,8 +218,8 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
       if (!game.paused.on) {
         ship.rot = ((TURN_SPEED / 180) * Math.PI) / FPS;
       }
-      if (game.gameover.on){
-        if(game.gameover.pos <= 0){
+      if (game.gameover.on) {
+        if (game.gameover.pos <= 0) {
           game.gameover.pos = 2;
         } else {
           game.gameover.pos--;
@@ -236,13 +235,13 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
     case 57: //number 9
       game.devMode = !game.devMode ? true : false;
       break;
-    case 40: 
-    if(game.gameover.on){
-      var name = game.gameover.name.split('');
-        var c = changeChar(false, game.gameover.name.charAt(game.gameover.pos))
-        name[game.gameover.pos] = c
-        game.gameover.name = name.join('');
-    }
+    case 40:
+      if (game.gameover.on) {
+        var name = game.gameover.name.split("");
+        var c = changeChar(false, game.gameover.name.charAt(game.gameover.pos));
+        name[game.gameover.pos] = c;
+        game.gameover.name = name.join("");
+      }
   }
 }
 
@@ -281,6 +280,7 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
       break;
     case 13: //enter button start a new game if at game over
       if (game.gameover.on) {
+        handleHighscore();
         game = newGame();
       }
       if (game.mainMenu.on) {
@@ -316,13 +316,14 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
     case 37: //left arrow ( stop rotate ship left)
       ship.rot = 0;
       break;
-    case 27:
+    case 27: // esc button
       if (game.paused.on) {
         game.paused.exit = !game.paused.exit ? true : false;
       } else if (game.mainMenu.subMenu && game.controlMenu.on) {
         game.mainMenu.subMenu = false;
         game.controlMenu.on = false;
       } else if (game.gameover.on) {
+        handleHighscore();
         game.gameover.on = false;
         game.mainMenu.on = true;
       }
@@ -741,6 +742,12 @@ function update() {
     ctx.fillStyle = "white";
     ctx.textAlign = "left";
     ctx.fillText("Lives:" + game.lives, 12, 55);
+
+    //draw the highscore
+    ctx.font = "25px Hyperspace-bold";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "left";
+    ctx.fillText("Highscore: " + game.highscore, canv.width*5/7, 35);
   } else if (!game.mainMenu.on) {
     ctx.font = "30px Hyperspace-bold";
     ctx.fillStyle = "white";
@@ -755,31 +762,39 @@ function update() {
       canv.width / 2,
       canv.height / 2 + 30
     );
-    ctx.font = "35px Hyperspace-bold";
-    ctx.fillStyle = "white";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      ""+ game.gameover.name.charAt(0), 
-      canv.width /2 - 25,
-      canv.height /2 + 70
-    )
-    ctx.font = "35px Hyperspace-bold";
-    ctx.fillStyle = "white";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      ""+ game.gameover.name.charAt(1), 
-      canv.width /2,
-      canv.height /2 + 70
-    )
-    ctx.font = "35px Hyperspace-bold";
-    ctx.fillStyle = "white";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      ""+ game.gameover.name.charAt(2), 
-      canv.width /2 + 25,
-      canv.height /2 + 70
-    )
-
+    if (!game.mainMenu.blinkOn && game.gameover.pos == 0) {
+    } else {
+      ctx.font = "35px Hyperspace-bold";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "" + game.gameover.name.charAt(0),
+        canv.width / 2 - 25,
+        canv.height / 2 + 70
+      );
+    }
+    if (!game.mainMenu.blinkOn && game.gameover.pos == 1) {
+    } else {
+      ctx.font = "35px Hyperspace-bold";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "" + game.gameover.name.charAt(1),
+        canv.width / 2,
+        canv.height / 2 + 70
+      );
+    }
+    if (!game.mainMenu.blinkOn && game.gameover.pos == 2) {
+    } else {
+      ctx.font = "35px Hyperspace-bold";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "" + game.gameover.name.charAt(2),
+        canv.width / 2 + 25,
+        canv.height / 2 + 70
+      );
+    }
     ctx.font = "15px Hyperspace-bold";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
