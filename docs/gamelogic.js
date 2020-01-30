@@ -71,7 +71,18 @@ var temp = 0; //temp veriable until I implement highscores
 var highscore = false; //temp variable until actual high scores is implemented
 var roids = [];
 if (localStorage.getItem("scores") == null) {
-  scores = { h1: {name: "AAA", score: 10000 } };
+  scores = {
+    h1: { name: "AAA", score: 10000 },
+    h2: { name: null, score: null },
+    h3: { name: null, score: null },
+    h4: { name: null, score: null },
+    h5: { name: null, score: null },
+    h6: { name: null, score: null },
+    h7: { name: null, score: null },
+    h8: { name: null, score: null },
+    h9: { name: null, score: null },
+    h10: { name: null, score: null }
+  };
   localStorage.setItem("scores", JSON.stringify(scores));
 }
 var game = newGame();
@@ -119,6 +130,9 @@ function newGame() {
     controlMenu: {
       on: false
     },
+    highscoreMenu: {
+      on: false
+    },
     newLife: ADD_LIVE,
     devMode: SHOW_DEV
   };
@@ -148,16 +162,37 @@ function handleHighscore(name) {
   var ret = localStorage.getItem("scores");
   var scores = JSON.parse(ret);
   var newhighscore = false;
-  var tempscore,
-    tempName = null;
-    for( var i = 1; i <= Object.keys(scores).length; i++ ){
-        if (scores['h'+i].score < finalScore|| (scores['h'+i] == null && tempscore != null)) {
-            if(score['h'+i] != null){
-              tempscore = scores['h'+i].score
-              tempName 
-            }
-        }
+  var tempscore = scores["h1"].score;
+  var tempName = scores["h1"].name;
+
+  for (var i = 1; i <= Object.keys(scores).length; i++) {
+    var pos = "h" + i;
+    if (scores[pos].score == null && tempscore != null && !newhighscore) {
+      tempscore = null;
+      tempName = null;
+      scores[pos].score = finalScore;
+      scores[pos].name = name;
+      newhighscore = true;
+      continue;
+    } else if (scores[pos].score < finalScore && !newhighscore) {
+      tempscore = scores[pos].score;
+      tempName = scores[pos].name;
+
+      scores[pos].score = highScore;
+      scores[pos].name = name;
+      newhighscore = true;
+      continue;
+    }
+    if (newhighscore && tempscore != null) {
+      var temp2scr = scores[pos].score;
+      var temp3nme = scores[pos].name;
+      scores[pos].score = tempscore;
+      scores[pos].name = tempName;
+      tempscore = temp2scr;
+      tempName = temp3nme;
+    }
   }
+  localStorage.setItem("scores", JSON.stringify(scores));
 }
 
 function changeChar(increase, character) {
@@ -235,7 +270,7 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
     case 57: //number 9
       game.devMode = !game.devMode ? true : false;
       break;
-    case 40:
+    case 40: //down key
       if (game.gameover.on) {
         var name = game.gameover.name.split("");
         var c = changeChar(false, game.gameover.name.charAt(game.gameover.pos));
@@ -280,7 +315,7 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
       break;
     case 13: //enter button start a new game if at game over
       if (game.gameover.on) {
-        handleHighscore();
+        handleHighscore(game.gameover.name);
         game = newGame();
       }
       if (game.mainMenu.on) {
@@ -295,11 +330,8 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
             game.controlMenu.on = true;
             break;
           case 3:
-            //TODO make a highscore screen
-            temp++;
-            if (temp > 2) {
-              highscore = true;
-            }
+            game.highscoreMenu.on = true;
+            game.mainMenu.subMenu = true;
             break;
         }
       }
@@ -322,8 +354,11 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
       } else if (game.mainMenu.subMenu && game.controlMenu.on) {
         game.mainMenu.subMenu = false;
         game.controlMenu.on = false;
+      } else if (game.mainMenu.subMenu && game.highscoreMenu.on) {
+        game.mainMenu.subMenu = false;
+        game.highscoreMenu.on = false;
       } else if (game.gameover.on) {
-        handleHighscore();
+        handleHighscore(game.gameover.name);
         game.gameover.on = false;
         game.mainMenu.on = true;
       }
@@ -359,6 +394,9 @@ function destroyAsteroid(index) {
   var y = roids[index].y;
   var r = roids[index].r;
   game.score += roids[index].pv;
+  if (game.score > game.highscore) {
+    game.highscore = game.score;
+  }
   checkAddLife();
 
   if (r == Math.ceil(ROID_SIZE / 2)) {
@@ -584,6 +622,29 @@ function update() {
         (canv.width * 1) / 2,
         (canv.height * 13) / 16
       );
+
+    } else if (game.highscoreMenu.on) { //main menu highscores
+      //
+      ctx.font = "80px Hyperspace";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText("Highscores", canv.width / 2, (canv.height * 1) / 8);
+      ctx.font = "45px Hyperspace-bold";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText("Local Highscores",canv.width * 1/3, canv.height* 2/8);
+      ctx.fillText("Global Highscores", canv.width * 2/3, canv.height * 2/8);
+
+      var ret = localStorage.getItem("scores");
+      var locscores = JSON.parse(ret);
+var i = canv.height * 4/12
+      for(var j = 1; j <= Object.keys(locscores).length; j++){
+        if(locscores['h'+j].score != null){
+          i += 55
+          ctx.fillText(locscores['h'+j].name + "\t" + locscores['h'+j].score, canv.width * 1/3, i)
+        }
+      };
+
     }
   }
 
@@ -747,7 +808,7 @@ function update() {
     ctx.font = "25px Hyperspace-bold";
     ctx.fillStyle = "white";
     ctx.textAlign = "left";
-    ctx.fillText("Highscore: " + game.highscore, canv.width*5/7, 35);
+    ctx.fillText("Highscore: " + game.highscore, (canv.width * 5) / 7, 35);
   } else if (!game.mainMenu.on) {
     ctx.font = "30px Hyperspace-bold";
     ctx.fillStyle = "white";
