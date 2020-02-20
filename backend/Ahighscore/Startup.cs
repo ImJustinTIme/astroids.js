@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Ahighscore.Models;
 
 
+
 namespace Ahighscore
 {
     public class Startup
@@ -21,7 +22,7 @@ namespace Ahighscore
         {
             Configuration = configuration;
         }
-
+        readonly string Origins= "_Origins";
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -30,6 +31,16 @@ namespace Ahighscore
             services.AddDbContext<scoreContext>(opt =>
                 opt.UseInMemoryDatabase("scoreList"));
             services.AddControllers();
+
+            services.AddCors(options =>
+            {
+            options.AddPolicy(Origins,
+            builder =>
+            {
+                builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowCredentials();
+                                   
+            });
+        });
             
         }
 
@@ -46,6 +57,8 @@ namespace Ahighscore
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCors(Origins);
 
             app.UseEndpoints(endpoints =>
             {

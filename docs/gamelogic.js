@@ -164,7 +164,15 @@ function handleHighscore(name) {
   var newhighscore = false;
   var tempscore = scores["h1"].score;
   var tempName = scores["h1"].name;
-
+  const xhr = new XMLHttpRequest();
+  var toSend = {
+    name : name,
+    score : game.score}
+  toSend = JSON.stringify(toSend)
+  xhr.open('POST','https://localhost:5001/api/scores', true);
+  xhr.withCredentials = true;
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(toSend);
   for (var i = 1; i <= Object.keys(scores).length; i++) {
     var pos = "h" + i;
     if (scores[pos].score == null && tempscore != null && !newhighscore) {
@@ -178,7 +186,7 @@ function handleHighscore(name) {
       tempscore = scores[pos].score;
       tempName = scores[pos].name;
 
-      scores[pos].score = highScore;
+      scores[pos].score = finalScore;
       scores[pos].name = name;
       newhighscore = true;
       continue;

@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Ahighscore.Models;
 
+
 namespace Ahighscore.Controllers
-{
+{   
+    
     [Route("api/[controller]")]
     [ApiController]
     public class scoresController : ControllerBase
