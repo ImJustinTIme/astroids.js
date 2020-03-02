@@ -25,3 +25,10 @@ app.get('/scores', ( req, res) => {
     allScores = db.collection('scores').find().toArray();
     res.send(allScores);
 });
+
+app.post('/scores', (req, res) => {
+    db.collection('scores').insertOne(req.body, (err, results) => {
+        if (err) return console.log(err);
+    });
+    
+});
